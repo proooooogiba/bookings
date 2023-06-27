@@ -6,9 +6,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/proooooogiba/bookings/pkg/config"
-	"github.com/proooooogiba/bookings/pkg/models"
-	"github.com/proooooogiba/bookings/pkg/render"
+	"github.com/proooooogiba/bookings/internal/config"
+	"github.com/proooooogiba/bookings/internal/models"
+	"github.com/proooooogiba/bookings/internal/render"
 )
 
 // Repo the repository used by the handlers

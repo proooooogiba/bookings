@@ -8,8 +8,8 @@ import (
 	"text/template"
 
 	"github.com/justinas/nosurf"
-	"github.com/proooooogiba/bookings/pkg/config"
-	"github.com/proooooogiba/bookings/pkg/models"
+	"github.com/proooooogiba/bookings/internal/config"
+	"github.com/proooooogiba/bookings/internal/models"
 )
 
 var app *config.AppConfig
