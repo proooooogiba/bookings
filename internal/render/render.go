@@ -2,6 +2,7 @@ package render
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"net/http"
 	"path/filepath"
@@ -12,7 +13,10 @@ import (
 	"github.com/proooooogiba/bookings/internal/models"
 )
 
+var functions = template.FuncMap{}
+
 var app *config.AppConfig
+var pathToTemplates = "./templates"
 
 // CreateTemplateCache set the config for the template cache
 func NewTemplates(a *config.AppConfig) {
@@ -59,11 +63,12 @@ func RenderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, td *mod
 	}
 }
 
+// CreateTemplateCache creates a template cache as a map
 func СreateTemplateCache() (map[string]*template.Template, error) {
 	myCache := map[string]*template.Template{}
 
 	// get all of the files named *.page.html from ./templates
-	pages, err := filepath.Glob("./templates/*.page.html")
+	pages, err := filepath.Glob(fmt.Sprintf("%s/*.page.html", pathToTemplates))
 
 	if err != nil {
 		return myCache, err
@@ -73,18 +78,18 @@ func СreateTemplateCache() (map[string]*template.Template, error) {
 	// we use it to add layouts to our cache *assumption*
 	for _, page := range pages {
 		name := filepath.Base(page)
-		ts, err := template.New(name).ParseFiles(page)
+		ts, err := template.New(name).Funcs(functions).ParseFiles(page)
 		if err != nil {
 			return myCache, err
 		}
 
-		matches, err := filepath.Glob("./templates/*.layout.html")
+		matches, err := filepath.Glob(fmt.Sprintf("%s/*.layout.html", pathToTemplates))
 		if err != nil {
 			return myCache, err
 		}
 
 		if len(matches) > 0 {
-			ts, err = ts.ParseGlob("./templates/*.layout.html")
+			ts, err = ts.ParseGlob(fmt.Sprintf("%s/*.layout.html", pathToTemplates))
 			if err != nil {
 				return myCache, err
 			}
