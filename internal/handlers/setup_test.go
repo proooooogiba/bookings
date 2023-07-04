@@ -24,11 +24,10 @@ var session *scs.SessionManager
 var pathToTemplates = "./../../templates"
 var functions = template.FuncMap{}
 
-
 func getRoutes() http.Handler {
 	// what am i going to put in the session
 	gob.Register(models.Reservation{})
-	
+
 	// change this to  true when in production
 	app.InProduction = false
 
@@ -56,8 +55,7 @@ func getRoutes() http.Handler {
 
 	repo := NewRepo(&app)
 	NewHandlers(repo)
-	render.NewTemplates(&app)
-
+	render.NewRenderer(&app)
 
 	mux := chi.NewRouter()
 
@@ -75,11 +73,9 @@ func getRoutes() http.Handler {
 	mux.Post("/search-availability-json", Repo.AvailabilityJSON)
 	mux.Get("/reservation-summary", Repo.ReservationSummary)
 
-
 	mux.Get("/contact", Repo.Contact)
 	mux.Get("/make-reservation", Repo.Reservation)
 	mux.Post("/make-reservation", Repo.PostReservation)
-	
 
 	fileServer := http.FileServer(http.Dir("./static/"))
 	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))
@@ -87,15 +83,14 @@ func getRoutes() http.Handler {
 	return mux
 }
 
-
 // NoSurf adds CSRF protection to all POST requests
 func NoSurf(next http.Handler) http.Handler {
 	csrfHandler := nosurf.New(next)
 
 	csrfHandler.SetBaseCookie(http.Cookie{
 		HttpOnly: true,
-		Path: "/",
-		Secure: app.InProduction,
+		Path:     "/",
+		Secure:   app.InProduction,
 		SameSite: http.SameSiteLaxMode,
 	})
 	return csrfHandler
@@ -116,7 +111,7 @@ func СreateTestTemplateCache() (map[string]*template.Template, error) {
 	if err != nil {
 		return myCache, err
 	}
-	
+
 	// range through all files ending with *.page.html
 	// we use it to add layouts to our cache *assumption*
 	for _, page := range pages {
