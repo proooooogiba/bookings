@@ -1,1 +1,3 @@
 *.out
+database.yml
+.bash_profile.save

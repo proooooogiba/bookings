@@ -58,7 +58,7 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	err  := r.ParseForm()
 	if err != nil {
 		helpers.ServerError(w, err)
-		return 
+		return
 	}
 
 	reservation := models.Reservation{
@@ -73,7 +73,6 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	form.Required("first_name", "last_name", "email")
 	form.MinLength("first_name", 3)
 	form.IsEmail("email")
-
 
 	if !form.Valid() {
 		data := make(map[string]interface{})
@@ -95,7 +94,6 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 func (m *Repository) Generals(w http.ResponseWriter, r *http.Request) {
 	render.RenderTemplate(w, r, "generals.page.html", &models.TemplateData{})
 }
-
 
 // Majors renders the room page
 func (m *Repository) Majors(w http.ResponseWriter, r *http.Request) {
@@ -130,18 +128,16 @@ func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
 	out, err := json.MarshalIndent(resp, "", "     ")
 	if err != nil {
 		helpers.ServerError(w, err)
-		return 
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(out)
 }
 
-
 // Contact renders the make a contact page and displays form
 func (m *Repository) Contact(w http.ResponseWriter, r *http.Request) {
 	render.RenderTemplate(w, r, "contact.page.html", &models.TemplateData{})
 }
-
 
 func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) {
 	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
