@@ -18,3 +18,4 @@ func NewPostgresRepo(conn *sql.DB, a *config.AppConfig) repository.DatabaseRepo 
 		DB: conn,
 	}
 }
+

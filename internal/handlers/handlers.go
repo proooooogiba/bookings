@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/proooooogiba/bookings/internal/config"
 	"github.com/proooooogiba/bookings/internal/driver"
@@ -21,14 +23,14 @@ var Repo *Repository
 // Repository is the repository type
 type Repository struct {
 	App *config.AppConfig
-	DB repository.DatabaseRepo
+	DB  repository.DatabaseRepo
 }
 
 // NewRepo creates a new repository
 func NewRepo(a *config.AppConfig, db *driver.DB) *Repository {
 	return &Repository{
 		App: a,
-		DB: dbrepo.NewPostgresRepo(db.SQL, a),
+		DB:  dbrepo.NewPostgresRepo(db.SQL, a),
 	}
 }
 
@@ -61,7 +63,30 @@ func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
 
 // PostReservation handles the posting of a reservation form
 func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
-	err  := r.ParseForm()
+	err := r.ParseForm()
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	sd := r.Form.Get("start_date")
+	ed := r.Form.Get("end_date")
+
+	// 2020-01-01 -- 01/02 03:04:05PM '06 -0700
+
+	layout := "2006-01-02"
+	startDate, err := time.Parse(layout, sd)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	endDate, err := time.Parse(layout, ed)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	roomID, err := strconv.Atoi(r.Form.Get("room_id"))
 	if err != nil {
 		helpers.ServerError(w, err)
 		return
@@ -69,9 +94,12 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 
 	reservation := models.Reservation{
 		FirstName: r.Form.Get("first_name"),
-		LastName: r.Form.Get("last_name"),
-		Phone: r.Form.Get("phone"),
-		Email: r.Form.Get("email"),
+		LastName:  r.Form.Get("last_name"),
+		Email:     r.Form.Get("email"),
+		Phone:     r.Form.Get("phone"),
+		StartDate: startDate,
+		EndDate:   endDate,
+		RoomID:    roomID,
 	}
 
 	form := forms.New(r.PostForm)
@@ -88,6 +116,26 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 			Form: form,
 			Data: data,
 		})
+		return
+	}
+
+	newReservationID, err := m.DB.InsertReservation(reservation)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	restriction := models.RoomRestriction{
+		StartDate: startDate,
+		EndDate: endDate,
+		RoomID: roomID,
+		ReservationID: newReservationID,
+		RestrictionID: 1,
+	}
+
+	err = m.DB.InsertRoomRestriction(restriction)
+	if err != nil {
+		helpers.ServerError(w, err)
 		return
 	}
 
@@ -120,14 +168,14 @@ func (m *Repository) PostAvailability(w http.ResponseWriter, r *http.Request) {
 }
 
 type jsonResponse struct {
-	OK bool `json:"ok"`
+	OK      bool   `json:"ok"`
 	Message string `json:"message"`
 }
 
 // AvailabilityJSON handles request for availability and send JSON response
 func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
-	resp := jsonResponse {
-		OK: true,
+	resp := jsonResponse{
+		OK:      true,
 		Message: "Available!",
 	}
 

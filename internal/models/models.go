@@ -40,7 +40,6 @@ type Reservation struct {
 	StartDate       time.Time
 	EndDate         time.Time
 	RoomID          int
-	RestrictionName string
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 	Room            Room
